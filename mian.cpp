@@ -2,7 +2,12 @@
 #include "Universe.h"
 #include <vector>
 #include <conio.h>
+#include <thread>
+#include <deque>
 
+
+std::deque<char> keyevents;
+const int MAX_EVENTS = 10;
 //enabling virtual sequences in cmd
 #ifdef _WIN32
 #include <windows.h>
@@ -12,6 +17,7 @@ HANDLE stdout_handle;
 HANDLE stdin_handle;
 DWORD originalOutMode;
 DWORD originalInMode;
+
 void enable_virtual_seq()
 {
 	stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
@@ -36,6 +42,8 @@ void restore_settings()
 #endif
 	
 #define SIZE 40
+
+
 
 void get_intialstate(Universe & uni)
 {
@@ -78,6 +86,20 @@ void get_intialstate(Universe & uni)
 	}
 	uni.set_highlight(-1, -1);
 }
+
+
+void get_key_events()
+{
+	char c = 0;
+	while(true)
+	{
+		c = getch();
+		keyevents.push_front(c);
+		if(keyevents.size() > MAX_EVENTS)
+			keyevents.pop_back();
+
+	}
+}
 int main()
 {
 
@@ -95,11 +117,10 @@ int main()
 	uni.set_cell(10,11, 1);
 	uni.set_cell(10,12, 1);
 	get_intialstate(uni);
-	// cells[12][10] = 1;
-	// cells[11][11] = 1;
 
-
-	uni.run(100);
+	std::thread in_thread(get_key_events);
+	
+	uni.run(10000);
 	std::cout << CSI_SHOW_CURSOR;
 	#ifdef _WIN32
 	restore_settings();

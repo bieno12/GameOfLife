@@ -1,9 +1,10 @@
 #include "Universe.h"
 #include <time.h>
 #include "CSIcommands.h"
+#include <deque>
 
 using namespace std;
-
+extern deque<char> keyevents;
 static const int dx[] = {0,0, 1,1,1, -1,-1,-1};
 static const int dy[] = {1,-1,1,0,-1, 1,0, -1};
 
@@ -95,7 +96,12 @@ void Universe::display()
 		}
 		cout << CSI_RESET_FORMAT <<'\n';
 	}
-	
+	cout << "current Generation: " << m_currentGeneration <<'\n';
+
+	cout << "press wasd to move\n";
+	cout << "press spacebar to set/unset a cell\n";
+	cout << "press p to pause/unpause\n";
+	cout << "press z to hide selection\n";
 	cout << flush;
 	// std::cout.sync_with_stdio(true);
 
@@ -111,11 +117,47 @@ void Universe::run(int gens)
 	lastClock = clock() + gen_time;
 	while(true)
 	{
-		if(lastClock < (currentClock = clock()))
+		for(char event : keyevents)
+		{
+			switch(event)
+			{
+				case 'a':
+				case 'A':
+					if(m_highlighter_x > 0) m_highlighter_x--;
+				break;
+				case 'd':
+				case 'D':
+					if(m_highlighter_x < 40 - 1) m_highlighter_x++;
+				break;
+				case 'w':
+				case 'W':
+					if(m_highlighter_y > 0) m_highlighter_y--;
+
+				break;
+				case 's':
+				case 'S':
+					if(m_highlighter_y < 40 - 1) m_highlighter_y++;
+				break;
+				case ' ':
+					this->set_cell(m_highlighter_x, m_highlighter_y, !this->cell_at(m_highlighter_x, m_highlighter_y));
+				break;
+				case 'z':
+				case 'Z':
+					m_highlighter_y = -1;
+					m_highlighter_x = -1;
+				break;
+				case 'p':
+				case 'P':
+					m_paused = !m_paused;
+				break;
+			}
+		}
+		keyevents.clear();
+		this->display();
+		if(lastClock < (currentClock = clock())  && !m_paused)
 		{
 			this->next_generation();
 			this->display();
-			cout << "current Generation: " << m_currentGeneration << " / " << gens <<'\n';
 			lastClock = currentClock + gen_time;
 			current_gen++;
 			if(current_gen == gens)

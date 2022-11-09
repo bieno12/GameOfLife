@@ -7,6 +7,7 @@ private:
 	float m_gps; //generations per sec
 	int m_currentGeneration;
 	int m_size;
+	bool m_paused = false;
 	std::vector<std::vector<bool>> m_grid;
 	int m_highlighter_x;
 	int m_highlighter_y;
